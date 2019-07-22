@@ -5,7 +5,7 @@ module.exports = {
      devServer: {
         proxy: {
              '/api':{
-                 target:'https://suggest.taobao.com/sug',
+                 target:'http://localhost',
                 changeOrigin:true,
                 pathRewrite:{
                      '/api':''
