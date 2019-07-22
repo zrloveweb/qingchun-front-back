@@ -4,19 +4,19 @@
             <div class="ms-title">后台管理系统</div>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
                 <el-form-item prop="username">
-                    <el-input v-model="ruleForm.username" placeholder="username">
+                    <el-input v-model="ruleForm.username" placeholder="username"   @blur="cannelHintColor()">
                         <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
                     </el-input>
                 </el-form-item>
                 <el-form-item prop="password">
-                    <el-input type="password" placeholder="password" v-model="ruleForm.password" @keyup.enter.native="submitForm('ruleForm')">
+                    <el-input type="password" placeholder="password" v-model="ruleForm.password" @keyup.enter.native="submitForm('ruleForm')" @blur="cannelHintColor()">
                         <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
                     </el-input>
                 </el-form-item>
                 <div class="login-btn">
                     <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
                 </div>
-                <p class="login-tips">Tips : 用户名和密码随便填。</p>
+                <p class="login-tips" :class="{'hintColor':hintColor.display}">Tips : {{prompt.hint}}</p>
             </el-form>
         </div>
     </div>
@@ -38,6 +38,13 @@
                     password: [
                         { required: true, message: '请输入密码', trigger: 'blur' }
                     ]
+                },
+                //提示
+                prompt:{
+                    hint:"用户名:admin,密码:123456"
+                },
+                hintColor:{
+                    display: false
                 }
             }
         },
@@ -45,21 +52,40 @@
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        var api = '/api?code=utf-8&q=11';
-              
-                      this.$axios.get(api).then(function(data){
-                            console.info(data);
-                            localStorage.setItem('ms_username',this.ruleForm.username);
-                            this.$router.push('/');
+                    var api = '/api/sysUser/login';
+                        let param = {"username":this.ruleForm.username,"password":this.ruleForm.password};
+                        console.info(param)
+                      this.$axios.post(api,param).then((resp) =>{
+                          
+                            if(resp.data.code == 10000){
+                                localStorage.setItem('ms_username',this.ruleForm.username);
+                                this.$router.push('/');
+                            }else if(resp.data.code == 10001){
+                                this.prompt.hint = "用户名或密码错误";
+                                this.hintColor.display = true;
+                            }
+                           
                         }).catch(function(error){
                             alert(error)
                         })
                  
                     } else {
                         console.log('error submit!!');
+                        this.prompt.hint='错误提交。';
+                        this.hintColor.display = true;
                         return false;
                     }
                 });
+            },
+            cannelHintColor(){
+                if(this.ruleForm.username.length > 0 && this.ruleForm.password.length > 0){
+                    this.prompt.hint = "用户名:admin,密码:123456";
+                    this.hintColor.display = false;
+                }else{
+                    this.prompt.hint = "请填写用户名密码";
+                    this.hintColor.display = false;
+                }
+                
             }
         }
     }
@@ -106,5 +132,8 @@
         font-size:12px;
         line-height:30px;
         color:#fff;
+    }
+    .hintColor{
+        color:red;
     }
 </style>
